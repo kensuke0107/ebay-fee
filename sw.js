@@ -1,6 +1,6 @@
 // 電波がなくても開けるように、ファイル一式を携帯に保存しておく。
 // 中身を直したら VERSION を上げる（上げないと携帯に古い版が残る）。
-var VERSION = 'ebay-fee-2026-09-25a';
+var VERSION = 'ebay-fee-2026-09-25b';
 var FILES = ['./', './index.html', './manifest.json', './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {

@@ -136,6 +136,11 @@
   .result .take { background: var(--take-soft); }
   .result .fees { background: var(--fee-soft); border-left: 1px solid var(--line-soft); }
   @media (max-width: 560px) { .result .fees { border-left: none; border-top: 1px solid var(--line-soft); } }
+  .result .after { background: var(--navy-soft); }
+  .result .dutyc { background: var(--surface); border-left: 1px solid var(--line-soft); }
+  @media (max-width: 560px) { .result .dutyc { border-left: none; border-top: 1px solid var(--line-soft); } }
+  .after .res-label { color: var(--navy); }
+  .dutyc .res-label { color: var(--fee); }
   .res-label { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 4px; }
   .take .res-label { color: var(--take); }
   .fees .res-label { color: var(--fee); }
@@ -215,8 +220,25 @@
           <option value="0.0040">0.40%（前月売上 $100,000〜）</option>
         </select>
       </div>
+      <div class="field">
+        <label for="origin">原産国（米国に売ったときの関税）</label>
+        <select id="origin">
+          <option value="jp" selected>日本製</option>
+          <option value="ch">スイス製</option>
+          <option value="cn">中国製</option>
+          <option value="us">米国製</option>
+          <option value="other">その他（率を手で入れる）</option>
+        </select>
+        <span class="hint">発送元ではなく「作られた国」で決まります</span>
+      </div>
+      <div class="field">
+        <label for="duty">関税率（%）</label>
+        <input type="number" id="duty" value="12.5" min="0" max="100" step="0.5" inputmode="decimal">
+        <span class="hint" id="dutyHint"></span>
+      </div>
       <div class="field full">
         <div class="toggles">
+          <label class="toggle"><input type="checkbox" id="dutyFee" checked> 関税の手数料（関税の約2%＋935円＋215円）</label>
           <label class="toggle"><input type="checkbox" id="payoneer" checked> Payoneer 2%（受取）</label>
           <label class="toggle"><input type="checkbox" id="ads" checked> 広告（Promoted Listings）</label>
           <span class="toggle" style="gap:6px">
@@ -241,6 +263,20 @@
     </div>
   </div>
 
+  <div class="result duty-box" style="margin-top:12px">
+    <div class="after">
+      <p class="res-label">関税を払ったあとの手取り（米国）</p>
+      <p class="big" id="afterUsd">$0</p>
+      <p class="big jpy" id="afterJpy">¥0</p>
+    </div>
+    <div class="dutyc">
+      <p class="res-label">関税（ざっくり）</p>
+      <p class="big" id="dutyUsd">$0</p>
+      <p class="big jpy" id="dutyJpy">¥0</p>
+      <p class="pct" id="dutyNote"></p>
+    </div>
+  </div>
+
   <section class="card" style="margin-top:16px">
     <p class="eyebrow">内訳</p>
     <div class="scroll">
@@ -258,7 +294,7 @@
     <div class="scroll">
       <table>
         <thead>
-          <tr><th class="num">売値</th><th class="num">手数料</th><th class="num">手取り</th><th class="num">手取り（円）</th><th class="num">実効率</th></tr>
+          <tr><th class="num">売値</th><th class="num">手数料</th><th class="num">手取り</th><th class="num">手取り（円）</th><th class="num">実効率</th><th class="num">関税後（円）</th></tr>
         </thead>
         <tbody id="quick"></tbody>
       </table>
@@ -273,25 +309,60 @@
         <li><span class="flag">腕時計は $1,000 に段差があります。</span>超えた部分は4%に落ちるので、高額帯を「18%」で計算すると手数料を大きく見すぎます（$2,300なら実際は約11〜13%）。</li>
         <li>落札手数料は<b>売値＋買い手が払う送料</b>にかかります。注文ごとの固定費は $0.40（$10以下の注文は $0.30）。</li>
         <li>広告（Promoted Listings）は<b>使ったときだけ</b>。売れた分にだけかかります。</li>
-        <li>ここに<b>入っていないもの</b>：仕入れ値、こちらが払う実際の発送費、関税、消費税の還付。</li>
+        <li>ここに<b>入っていないもの</b>：仕入れ値、こちらが払う実際の発送費、消費税の還付。</li>
+        <li><b>関税は米国に売ったときの目安</b>（2026年9月25日時点）。売値にかけています（米国の課税価格は国際送料を含まない）。<span class="flag">米国の関税は半年で何度も変わっています。出す前にSpeedPAKの推定関税で確認してください。</span></li>
+        <li>日本製・スイス製は、どの商品でも<b>合計12.5%</b>（基本税率が12.5%未満なら12.5%まで上乗せ）。</li>
+        <li>中国製は昔からの上乗せ関税（腕時計・カメラ7.5%／レンズ25%／バッグ25%）に<b>さらに12.5%</b>。<span class="flag">カメラ・レンズ・ジュエリーの中国製の率は確定できていない目安</span>です。</li>
+        <li>米国製は基本税率だけ（革バッグ9%。USA製オールドコーチの実際の請求も約9.3%だった）。原産国を米国にしただけでは無税にならない。</li>
+        <li><b>真贋保証（腕時計$2,000以上・バッグ$500以上）は買い手が関税を払う</b>ので0にしています（けんちゃんの運用より）。</li>
       </ul>
     </div>
   </section>
 
   <footer>
     料率の出典：eBay公式「ストアの販売手数料」。腕時計は2026年9月21日に確認（$1,000まで12.5%／$1,000〜$5,000は4%／$5,000超は3%）。カメラ・バッグ・ジュエリーは2026年8月31日に確認。プランが変わると料率も変わります。<br>
-    <span id="ver">版 2026-09-25a</span>
+    <span id="ver">版 2026-09-25b（関税の目安を追加）</span>
   </footer>
 </div>
 
 <script>
   var CATS = {
-    watch:     { name: '腕時計', tiers: [[1000, .125], [5000, .04], [Infinity, .03]] },
+    // ag = 真贋保証の下限（この金額以上は買い手が関税を払う・けんちゃんの運用）
+    watch:     { name: '腕時計', tiers: [[1000, .125], [5000, .04], [Infinity, .03]], ag: 2000 },
     camera:    { name: 'カメラ＆写真', tiers: [[2500, .0935], [Infinity, .0235]] },
     cameraAcc: { name: 'カメラアクセサリ・レンズ', tiers: [[2500, .127], [Infinity, .0235]] },
-    bag:       { name: 'バッグ', tiers: [[2000, .13], [Infinity, .07]] },
+    bag:       { name: 'バッグ', tiers: [[2000, .13], [Infinity, .07]], ag: 500 },
     jewelry:   { name: 'ジュエリー（腕時計以外）', tiers: [[5000, .13], [Infinity, .07]] }
   };
+
+  // 米国の関税の目安（%）。2026-09-25時点。
+  //   日本・スイス: 基本税率＋301(強制労働) で合計12.5%（2026-07-24〜）
+  //   中国: 基本税率＋昔からの301（時計・カメラ7.5／レンズ・バッグ25）＋301(強制労働)12.5
+  //   米国: 基本税率だけ（革バッグ9%。カメラ・レンズ・時計はほぼ0として扱う）
+  var DUTY = {
+    jp: { watch: 12.5, camera: 12.5, cameraAcc: 12.5, bag: 12.5, jewelry: 12.5 },
+    ch: { watch: 12.5, camera: 12.5, cameraAcc: 12.5, bag: 12.5, jewelry: 12.5 },
+    cn: { watch: 20, camera: 20, cameraAcc: 40, bag: 46.5, jewelry: 26 },
+    us: { watch: 0, camera: 0, cameraAcc: 0, bag: 9, jewelry: 0 }
+  };
+  var DUTY_HINT = {
+    jp: '日本製は合計12.5%（確認済み）',
+    ch: 'スイス製は合計12.5%（確認済み）',
+    cn: { watch: '中国製 時計：約20%（目安）', camera: '中国製 カメラ：約20%（目安・未確定）', cameraAcc: '中国製 レンズ：約40%（目安・未確定）', bag: '中国製 革バッグ：約46.5%', jewelry: '中国製 ジュエリー：約26%（目安・未確定）' },
+    us: { bag: '米国製 革バッグ：9%（実際の請求も約9.3%）', other: '米国製：基本税率だけ（ほぼ0の目安）' },
+    other: '率を自分で入れてください'
+  };
+  var DUTY_FEE_JPY = 935 + 215; // 現地税金元払い請求手数料＋規制手数料（2026-09-09 実際の請求から）
+
+  function dutyDefault(origin, cat) {
+    return DUTY[origin] ? DUTY[origin][cat] : null;
+  }
+  function dutyHintText(origin, cat) {
+    var h = DUTY_HINT[origin];
+    if (typeof h === 'string') return h;
+    if (!h) return '';
+    return h[cat] || h.other || '';
+  }
 
   var $ = function (id) { return document.getElementById(id); };
   var usd = function (n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
@@ -322,7 +393,10 @@
       intl: Number($('intl').value) || 0,
       payoneer: $('payoneer').checked,
       ads: $('ads').checked,
-      adrate: Math.max(0, Number($('adrate').value) || 0) / 100
+      adrate: Math.max(0, Number($('adrate').value) || 0) / 100,
+      origin: DUTY[$('origin').value] || $('origin').value === 'other' ? $('origin').value : 'jp',
+      duty: Math.max(0, Number($('duty').value) || 0) / 100,
+      dutyFee: $('dutyFee').checked
     };
   }
 
@@ -334,7 +408,14 @@
     var pay = s.payoneer ? base * 0.02 : 0;
     var ad = s.ads ? base * s.adrate : 0;
     var fees = f.total + fixed + intl + pay + ad;
-    return { base: base, fvf: f, fixed: fixed, intl: intl, pay: pay, ad: ad, fees: fees, net: base - fees };
+    // 関税（米国）: 売値にかける。真贋保証の帯は買い手が払うので0
+    var ag = CATS[s.cat].ag;
+    var agFree = !!ag && price >= ag;
+    var duty = agFree ? 0 : price * s.duty;
+    var dutyFee = duty > 0 && s.dutyFee ? duty * 0.02 + DUTY_FEE_JPY / s.fx : 0;
+    var net = base - fees;
+    return { base: base, fvf: f, fixed: fixed, intl: intl, pay: pay, ad: ad, fees: fees, net: net,
+      agFree: agFree, duty: duty, dutyFee: dutyFee, after: net - duty - dutyFee };
   }
 
   function row(label, rateText, amount, fx, cls) {
@@ -357,7 +438,19 @@
     if (s.payoneer) html += row('Payoneer（受取）', '2%', r.pay, s.fx);
     if (s.ads) html += row('広告（Promoted Listings）', pct(s.adrate), r.ad, s.fx);
     html += row('合計', r.base > 0 ? pct(r.fees / r.base) : '—', r.fees, s.fx, 'total');
+    html += row('関税（米国）<br><span class="tier">' + (r.agFree ? '真贋保証の帯なので買い手が払う' : '売値 ' + usd(s.price) + ' に対して') + '</span>',
+      r.agFree ? '—' : pct(s.duty), r.duty, s.fx);
+    if (s.dutyFee) html += row('関税の手数料<br><span class="tier">関税の約2%＋935円＋215円（関税0なら無し）</span>', '—', r.dutyFee, s.fx);
     $('rows').innerHTML = html;
+
+    $('afterUsd').textContent = usd(r.after);
+    $('afterJpy').textContent = jpy(r.after * s.fx);
+    $('dutyUsd').textContent = usd(r.duty + r.dutyFee);
+    $('dutyJpy').textContent = jpy((r.duty + r.dutyFee) * s.fx);
+    $('dutyNote').textContent = r.agFree
+      ? '真贋保証（' + usd(CATS[s.cat].ag) + '以上）＝買い手が払う'
+      : '関税率 ' + pct(s.duty) + (s.dutyFee && r.duty > 0 ? '・手数料込み' : '');
+    $('dutyHint').textContent = dutyHintText(s.origin, s.cat);
 
     $('netUsd').textContent = usd(r.net);
     $('netJpy').textContent = jpy(r.net * s.fx);
@@ -372,7 +465,8 @@
       var c = compute(s, p);
       var mark = p === s.price ? ' style="background:var(--surface-2)"' : '';
       q += '<tr' + mark + '><td class="num">' + usd(p) + '</td><td class="num">' + usd(c.fees) + '</td><td class="num">' +
-        usd(c.net) + '</td><td class="num">' + jpy(c.net * s.fx) + '</td><td class="num">' + pct(c.fees / c.base) + '</td></tr>';
+        usd(c.net) + '</td><td class="num">' + jpy(c.net * s.fx) + '</td><td class="num">' + pct(c.fees / c.base) +
+        '</td><td class="num">' + jpy(c.after * s.fx) + (c.agFree ? '<span class="tier">（真贋）</span>' : '') + '</td></tr>';
     });
     $('quick').innerHTML = q;
     $('quickNote').textContent = CATS[s.cat].name + '・送料 ' + usd(s.ship) + '・1ドル ' + s.fx + '円' +
@@ -392,10 +486,22 @@
       $('payoneer').checked = !!saved.payoneer;
       $('ads').checked = !!saved.ads;
       if (saved.adrate != null) $('adrate').value = saved.adrate * 100;
+      if (saved.origin) $('origin').value = saved.origin;
+      if (saved.duty != null) $('duty').value = Math.round(saved.duty * 1000) / 10;
+      if (saved.dutyFee != null) $('dutyFee').checked = !!saved.dutyFee;
     }
   } catch (e) {}
 
-  ['price', 'ship', 'cat', 'fx', 'intl', 'payoneer', 'ads', 'adrate'].forEach(function (id) {
+  // 原産国かカテゴリを変えたら、関税率をその組み合わせの目安に入れ直す（その他は手入力のまま）
+  function resetDuty() {
+    var d = dutyDefault($('origin').value, $('cat').value);
+    if (d != null) $('duty').value = d;
+    render();
+  }
+  $('origin').addEventListener('change', resetDuty);
+  $('cat').addEventListener('change', resetDuty);
+
+  ['price', 'ship', 'cat', 'fx', 'intl', 'payoneer', 'ads', 'adrate', 'duty', 'dutyFee'].forEach(function (id) {
     $(id).addEventListener('input', render);
     $(id).addEventListener('change', render);
   });
