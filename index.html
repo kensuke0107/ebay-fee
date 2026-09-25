@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>eBay手数料の内訳</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="eBay手数料">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#244a6b">
+<meta name="robots" content="noindex">
+<style>
+  :root {
+    --ground: #eef0f2;
+    --surface: #ffffff;
+    --surface-2: #f6f7f9;
+    --line: #d3d8dd;
+    --line-soft: #e5e9ec;
+    --ink: #16222c;
+    --ink-2: #47596a;
+    --ink-3: #6f8090;
+    --navy: #244a6b;
+    --navy-soft: #e7eef4;
+    --take: #1c6b4f;
+    --take-soft: #e2f0ea;
+    --fee: #a4432d;
+    --fee-soft: #f7e8e4;
+    --shadow: 0 1px 2px rgba(20, 34, 44, .08), 0 8px 24px rgba(20, 34, 44, .06);
+    /* 電波がなくても表示できるよう、外部フォントは使わず端末のフォントだけ */
+    --jp: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d1419;
+      --surface: #151f27;
+      --surface-2: #1b2832;
+      --line: #2c3c48;
+      --line-soft: #233039;
+      --ink: #e7eef3;
+      --ink-2: #a9bcc9;
+      --ink-3: #8399a8;
+      --navy: #7fb2da;
+      --navy-soft: #1b2c3a;
+      --take: #6fcfa6;
+      --take-soft: #14302a;
+      --fee: #e0917c;
+      --fee-soft: #32211d;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 10px 28px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1419;
+    --surface: #151f27;
+    --surface-2: #1b2832;
+    --line: #2c3c48;
+    --line-soft: #233039;
+    --ink: #e7eef3;
+    --ink-2: #a9bcc9;
+    --ink-3: #8399a8;
+    --navy: #7fb2da;
+    --navy-soft: #1b2c3a;
+    --take: #6fcfa6;
+    --take-soft: #14302a;
+    --fee: #e0917c;
+    --fee-soft: #32211d;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 10px 28px rgba(0, 0, 0, .35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--jp);
+    font-size: 15px;
+    line-height: 1.65;
+    padding: env(safe-area-inset-top, 0px) 16px env(safe-area-inset-bottom, 0px);
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding-block: 28px 56px; }
+
+  header.top { margin-bottom: 20px; }
+  h1 {
+    font-size: 26px; line-height: 1.25; margin: 0 0 6px; letter-spacing: .01em;
+    font-weight: 700; text-wrap: balance;
+  }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin: 0; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line-soft);
+    border-radius: 10px; box-shadow: var(--shadow); padding: 18px;
+  }
+  .card + .card { margin-top: 16px; }
+
+  .eyebrow {
+    font-size: 11.5px; font-weight: 700; letter-spacing: .12em;
+    color: var(--ink-3); text-transform: uppercase; margin: 0 0 12px;
+  }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field label { font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
+  .field .hint { font-size: 11.5px; color: var(--ink-3); }
+  input[type="number"], select {
+    font: 600 17px/1.4 var(--mono); font-variant-numeric: tabular-nums;
+    color: var(--ink); background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 7px; padding: 9px 11px; width: 100%;
+  }
+  select { font-family: var(--jp); font-size: 16px; font-weight: 500; }
+  input:focus-visible, select:focus-visible, button:focus-visible {
+    outline: 2px solid var(--navy); outline-offset: 2px;
+  }
+  .full { grid-column: 1 / -1; }
+
+  .toggles { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 4px; }
+  .toggle { display: flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--ink-2); }
+  .toggle input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--navy); }
+
+  .rate-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+  .rate-row .field { flex: 1 1 140px; }
+  .chip {
+    font: 500 12.5px/1 var(--jp); color: var(--navy); background: var(--navy-soft);
+    border: 1px solid transparent; border-radius: 999px; padding: 10px 12px; cursor: pointer;
+  }
+  .chip:hover { border-color: var(--navy); }
+
+  /* 結果 */
+  .result { display: grid; grid-template-columns: 1.1fr 1fr; gap: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--line-soft); box-shadow: var(--shadow); }
+  @media (max-width: 560px) { .result { grid-template-columns: 1fr; } }
+  .result > div { padding: 18px; background: var(--surface); }
+  .result .take { background: var(--take-soft); }
+  .result .fees { background: var(--fee-soft); border-left: 1px solid var(--line-soft); }
+  @media (max-width: 560px) { .result .fees { border-left: none; border-top: 1px solid var(--line-soft); } }
+  .res-label { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 4px; }
+  .take .res-label { color: var(--take); }
+  .fees .res-label { color: var(--fee); }
+  .big { font: 600 30px/1.15 var(--mono); font-variant-numeric: tabular-nums; margin: 0; letter-spacing: -.01em; }
+  .big.jpy { font-size: 22px; color: var(--ink-2); margin-top: 2px; }
+  .pct { font: 600 13px/1 var(--mono); color: var(--ink-2); margin-top: 8px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .scroll { overflow-x: auto; }
+  th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--line-soft); vertical-align: baseline; }
+  th { font-size: 11.5px; letter-spacing: .06em; color: var(--ink-3); font-weight: 700; text-transform: uppercase; }
+  td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  th.num { font-family: var(--jp); }
+  tr.total td { border-top: 2px solid var(--line); border-bottom: none; font-weight: 700; }
+  tr.total td.num { color: var(--fee); }
+  .tier { font-size: 12px; color: var(--ink-3); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .note { font-size: 12.5px; color: var(--ink-2); line-height: 1.7; }
+  .note b { color: var(--ink); }
+  .note ul { margin: 6px 0 0; padding-left: 1.1em; }
+  .note li { margin: 3px 0; }
+  .flag { color: var(--fee); font-weight: 700; }
+  footer { margin-top: 22px; font-size: 11.5px; color: var(--ink-3); }
+  a { color: var(--navy); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <h1>eBay手数料の内訳</h1>
+    <p class="sub">ベーシックストア・日本登録セラー。売値を入れると、落札手数料・国際出品手数料・Payoneer・広告を分けて出します。</p>
+  </header>
+
+  <section class="card">
+    <p class="eyebrow">入力</p>
+    <div class="grid">
+      <div class="field">
+        <label for="price">売値（ドル）</label>
+        <input type="number" id="price" value="2300" min="0" step="10" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="ship">買い手に請求する送料（ドル）</label>
+        <input type="number" id="ship" value="0" min="0" step="5" inputmode="decimal">
+        <span class="hint">送料も手数料の対象になります</span>
+      </div>
+      <div class="field full">
+        <label for="cat">カテゴリ</label>
+        <select id="cat">
+          <option value="watch" selected>腕時計・パーツ・アクセサリ（12.5% → 4% → 3%）</option>
+          <option value="camera">カメラ＆写真（本体・レンズ以外）（9.35% → 2.35%）</option>
+          <option value="cameraAcc">カメラアクセサリ・交換レンズ・三脚（12.7% → 2.35%）</option>
+          <option value="bag">レディースバッグ＆ハンドバッグ（13% → 7%）</option>
+          <option value="jewelry">ジュエリー＆腕時計（腕時計以外）（13% → 7%）</option>
+        </select>
+      </div>
+      <div class="field full">
+        <div class="rate-row">
+          <div class="field">
+            <label for="fx">為替レート（1ドル＝円）</label>
+            <input type="number" id="fx" value="156.86" min="1" step="0.01" inputmode="decimal">
+          </div>
+          <button class="chip" type="button" data-fx="156.86">実勢 156.86</button>
+          <button class="chip" type="button" data-fx="155">シートと同じ 155</button>
+          <button class="chip" type="button" data-fx="150">安全側 150</button>
+        </div>
+        <span class="hint">実勢は2026年9月19日の終値。為替は毎日動くので、大きな金額のときは入れ直してください。</span>
+      </div>
+      <div class="field full">
+        <label for="intl">国際出品手数料（前月の売上で下がる）</label>
+        <select id="intl">
+          <option value="0.0135" selected>1.35%（標準・日本登録セラー）</option>
+          <option value="0.0120">1.20%（前月売上 $3,000〜）</option>
+          <option value="0.0095">0.95%（前月売上 $10,000〜）</option>
+          <option value="0.0070">0.70%（前月売上 $50,000〜）</option>
+          <option value="0.0040">0.40%（前月売上 $100,000〜）</option>
+        </select>
+      </div>
+      <div class="field full">
+        <div class="toggles">
+          <label class="toggle"><input type="checkbox" id="payoneer" checked> Payoneer 2%（受取）</label>
+          <label class="toggle"><input type="checkbox" id="ads" checked> 広告（Promoted Listings）</label>
+          <span class="toggle" style="gap:6px">
+            <input type="number" id="adrate" value="2" min="0" max="20" step="0.5" inputmode="decimal" style="width:80px;padding:5px 8px;font-size:16px">%
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="result" style="margin-top:16px">
+    <div class="take">
+      <p class="res-label">手取り</p>
+      <p class="big" id="netUsd">$0</p>
+      <p class="big jpy" id="netJpy">¥0</p>
+    </div>
+    <div class="fees">
+      <p class="res-label">手数料の合計</p>
+      <p class="big" id="feeUsd">$0</p>
+      <p class="big jpy" id="feeJpy">¥0</p>
+      <p class="pct" id="feePct">売値に対して 0%</p>
+    </div>
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <p class="eyebrow">内訳</p>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>項目</th><th class="num">率</th><th class="num">ドル</th><th class="num">円</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <p class="eyebrow">価格別の早見表（今の設定のまま）</p>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th class="num">売値</th><th class="num">手数料</th><th class="num">手取り</th><th class="num">手取り（円）</th><th class="num">実効率</th></tr>
+        </thead>
+        <tbody id="quick"></tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:10px" id="quickNote"></p>
+  </section>
+
+  <section class="card">
+    <p class="eyebrow">読むときの注意</p>
+    <div class="note">
+      <ul>
+        <li><span class="flag">腕時計は $1,000 に段差があります。</span>超えた部分は4%に落ちるので、高額帯を「18%」で計算すると手数料を大きく見すぎます（$2,300なら実際は約11〜13%）。</li>
+        <li>落札手数料は<b>売値＋買い手が払う送料</b>にかかります。注文ごとの固定費は $0.40（$10以下の注文は $0.30）。</li>
+        <li>広告（Promoted Listings）は<b>使ったときだけ</b>。売れた分にだけかかります。</li>
+        <li>ここに<b>入っていないもの</b>：仕入れ値、こちらが払う実際の発送費、関税、消費税の還付。</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    料率の出典：eBay公式「ストアの販売手数料」。腕時計は2026年9月21日に確認（$1,000まで12.5%／$1,000〜$5,000は4%／$5,000超は3%）。カメラ・バッグ・ジュエリーは2026年8月31日に確認。プランが変わると料率も変わります。<br>
+    <span id="ver">版 2026-09-25a</span>
+  </footer>
+</div>
+
+<script>
+  var CATS = {
+    watch:     { name: '腕時計', tiers: [[1000, .125], [5000, .04], [Infinity, .03]] },
+    camera:    { name: 'カメラ＆写真', tiers: [[2500, .0935], [Infinity, .0235]] },
+    cameraAcc: { name: 'カメラアクセサリ・レンズ', tiers: [[2500, .127], [Infinity, .0235]] },
+    bag:       { name: 'バッグ', tiers: [[2000, .13], [Infinity, .07]] },
+    jewelry:   { name: 'ジュエリー（腕時計以外）', tiers: [[5000, .13], [Infinity, .07]] }
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var usd = function (n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+  var jpy = function (n) { return '¥' + Math.round(n).toLocaleString('ja-JP'); };
+  var pct = function (n) { return (n * 100).toFixed(2).replace(/\.?0+$/, '') + '%'; };
+
+  // 段階料金は「超えた部分だけ次の率」。$2,300 なら 1,000×12.5% + 1,300×4%。
+  function fvf(base, tiers) {
+    var rest = base, from = 0, parts = [], total = 0;
+    for (var i = 0; i < tiers.length && rest > 0; i++) {
+      var cap = tiers[i][0], rate = tiers[i][1];
+      var span = Math.min(rest, cap - from);
+      if (span > 0) {
+        var fee = span * rate;
+        parts.push({ from: from, to: Math.min(cap, base), span: span, rate: rate, fee: fee });
+        total += fee; rest -= span; from = cap;
+      }
+    }
+    return { total: total, parts: parts };
+  }
+
+  function settings() {
+    return {
+      price: Math.max(0, Number($('price').value) || 0),
+      ship: Math.max(0, Number($('ship').value) || 0),
+      cat: CATS[$('cat').value] ? $('cat').value : 'watch',
+      fx: Math.max(1, Number($('fx').value) || 150),
+      intl: Number($('intl').value) || 0,
+      payoneer: $('payoneer').checked,
+      ads: $('ads').checked,
+      adrate: Math.max(0, Number($('adrate').value) || 0) / 100
+    };
+  }
+
+  function compute(s, price) {
+    var base = price + s.ship;
+    var f = fvf(base, CATS[s.cat].tiers);
+    var fixed = base > 0 ? (base <= 10 ? 0.30 : 0.40) : 0;
+    var intl = base * s.intl;
+    var pay = s.payoneer ? base * 0.02 : 0;
+    var ad = s.ads ? base * s.adrate : 0;
+    var fees = f.total + fixed + intl + pay + ad;
+    return { base: base, fvf: f, fixed: fixed, intl: intl, pay: pay, ad: ad, fees: fees, net: base - fees };
+  }
+
+  function row(label, rateText, amount, fx, cls) {
+    return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + label + '</td><td class="num tier">' +
+      rateText + '</td><td class="num">' + usd(amount) + '</td><td class="num">' + jpy(amount * fx) + '</td></tr>';
+  }
+
+  function render() {
+    var s = settings();
+    var r = compute(s, s.price);
+    var html = '';
+
+    r.fvf.parts.forEach(function (p, i) {
+      var range = r.fvf.parts.length === 1 ? '売値の全額'
+        : (i === 0 ? '最初の ' + usd(p.span) : usd(p.from) + ' を超えた ' + usd(p.span) + ' 分');
+      html += row('落札手数料<br><span class="tier">' + range + '</span>', pct(p.rate), p.fee, s.fx);
+    });
+    html += row('注文ごとの固定費', '—', r.fixed, s.fx);
+    html += row('国際出品手数料', pct(s.intl), r.intl, s.fx);
+    if (s.payoneer) html += row('Payoneer（受取）', '2%', r.pay, s.fx);
+    if (s.ads) html += row('広告（Promoted Listings）', pct(s.adrate), r.ad, s.fx);
+    html += row('合計', r.base > 0 ? pct(r.fees / r.base) : '—', r.fees, s.fx, 'total');
+    $('rows').innerHTML = html;
+
+    $('netUsd').textContent = usd(r.net);
+    $('netJpy').textContent = jpy(r.net * s.fx);
+    $('feeUsd').textContent = usd(r.fees);
+    $('feeJpy').textContent = jpy(r.fees * s.fx);
+    $('feePct').textContent = r.base > 0 ? '売値＋送料 ' + usd(r.base) + ' に対して ' + pct(r.fees / r.base) : '売値を入れてください';
+
+    var points = [300, 500, 1000, 1500, 2000, 3000, 5000];
+    if (points.indexOf(s.price) === -1 && s.price > 0) { points.push(s.price); points.sort(function (a, b) { return a - b; }); }
+    var q = '';
+    points.forEach(function (p) {
+      var c = compute(s, p);
+      var mark = p === s.price ? ' style="background:var(--surface-2)"' : '';
+      q += '<tr' + mark + '><td class="num">' + usd(p) + '</td><td class="num">' + usd(c.fees) + '</td><td class="num">' +
+        usd(c.net) + '</td><td class="num">' + jpy(c.net * s.fx) + '</td><td class="num">' + pct(c.fees / c.base) + '</td></tr>';
+    });
+    $('quick').innerHTML = q;
+    $('quickNote').textContent = CATS[s.cat].name + '・送料 ' + usd(s.ship) + '・1ドル ' + s.fx + '円' +
+      (s.ads ? '・広告 ' + pct(s.adrate) : '・広告なし') + (s.payoneer ? '・Payoneer 2%込み' : '・Payoneerなし') + 'で計算。網掛けは今の売値。';
+
+    try { localStorage.setItem('ebayFee', JSON.stringify(s)); } catch (e) {}
+  }
+
+  try {
+    var saved = JSON.parse(localStorage.getItem('ebayFee') || 'null');
+    if (saved) {
+      if (saved.price != null) $('price').value = saved.price;
+      if (saved.ship != null) $('ship').value = saved.ship;
+      if (saved.cat && CATS[saved.cat]) $('cat').value = saved.cat;
+      if (saved.fx) $('fx').value = saved.fx;
+      if (saved.intl) $('intl').value = String(saved.intl);
+      $('payoneer').checked = !!saved.payoneer;
+      $('ads').checked = !!saved.ads;
+      if (saved.adrate != null) $('adrate').value = saved.adrate * 100;
+    }
+  } catch (e) {}
+
+  ['price', 'ship', 'cat', 'fx', 'intl', 'payoneer', 'ads', 'adrate'].forEach(function (id) {
+    $(id).addEventListener('input', render);
+    $(id).addEventListener('change', render);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function (b) {
+    b.addEventListener('click', function () { $('fx').value = b.getAttribute('data-fx'); render(); });
+  });
+  render();
+
+  // 電波がなくても開けるように、ファイル一式を携帯に保存する
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
+</script>
+</body>
+</html>
