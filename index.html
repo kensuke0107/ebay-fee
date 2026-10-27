@@ -158,6 +158,13 @@
   tr.total td.num { color: var(--fee); }
   .tier { font-size: 12px; color: var(--ink-3); }
   tbody tr:last-child td { border-bottom: none; }
+  @media (max-width: 560px) {
+    th, td { padding: 8px 5px; }
+    th.num { white-space: normal; }
+    td.num { font-size: 12.5px; }
+    .result .big { font-size: 22px; }
+    .result .big.jpy { font-size: 16px; }
+  }
 
   .note { font-size: 12.5px; color: var(--ink-2); line-height: 1.7; }
   .note b { color: var(--ink); }
@@ -186,14 +193,7 @@
       <div class="field">
         <label for="ship">基本の送料（ドル）</label>
         <input type="number" id="ship" value="30" min="0" step="5" inputmode="decimal">
-        <span class="hint">米国に売るときは、これに関税（手数料込み）を足した額を送料にします</span>
-      </div>
-      <div class="field full">
-        <label for="dest">売り先</label>
-        <select id="dest">
-          <option value="us" selected>米国（送料＝基本の送料＋関税）</option>
-          <option value="other">米国以外（送料＝基本の送料だけ・関税なし）</option>
-        </select>
+        <span class="hint">米国以外はこの額が送料。米国はこれに関税（手数料込み）を足した額が送料</span>
         <span class="hint" id="shipCalc"></span>
       </div>
       <div class="field full">
@@ -256,40 +256,29 @@
     </div>
   </section>
 
-  <div class="result" style="margin-top:16px">
-    <div class="take">
-      <p class="res-label">手取り</p>
-      <p class="big" id="netUsd">$0</p>
-      <p class="big jpy" id="netJpy">¥0</p>
-    </div>
-    <div class="fees">
-      <p class="res-label">手数料の合計</p>
-      <p class="big" id="feeUsd">$0</p>
-      <p class="big jpy" id="feeJpy">¥0</p>
-      <p class="pct" id="feePct">売値に対して 0%</p>
-    </div>
-  </div>
-
-  <div class="result duty-box" style="margin-top:12px">
+  <p class="eyebrow" style="margin:18px 0 8px">全部払ったあとの手取り</p>
+  <div class="result" style="grid-template-columns:1fr 1fr">
     <div class="after">
-      <p class="res-label">関税を払ったあとの手取り（米国）</p>
-      <p class="big" id="afterUsd">$0</p>
-      <p class="big jpy" id="afterJpy">¥0</p>
+      <p class="res-label">米国に売ったとき</p>
+      <p class="big" id="usUsd">$0</p>
+      <p class="big jpy" id="usJpy">¥0</p>
+      <p class="pct" id="usNote"></p>
     </div>
-    <div class="dutyc">
-      <p class="res-label">関税（ざっくり）</p>
-      <p class="big" id="dutyUsd">$0</p>
-      <p class="big jpy" id="dutyJpy">¥0</p>
-      <p class="pct" id="dutyNote"></p>
+    <div class="take" style="border-left:1px solid var(--line-soft)">
+      <p class="res-label">米国以外に売ったとき</p>
+      <p class="big" id="otUsd">$0</p>
+      <p class="big jpy" id="otJpy">¥0</p>
+      <p class="pct" id="otNote"></p>
     </div>
   </div>
+  <p class="note" style="margin-top:8px">どちらも基本の送料は残ったまま（実際の発送費は引いていない）。</p>
 
   <section class="card" style="margin-top:16px">
-    <p class="eyebrow">内訳</p>
+    <p class="eyebrow">内訳（ドル）</p>
     <div class="scroll">
       <table>
         <thead>
-          <tr><th>項目</th><th class="num">率</th><th class="num">ドル</th><th class="num">円</th></tr>
+          <tr><th>項目</th><th class="num">米国</th><th class="num">米国以外</th></tr>
         </thead>
         <tbody id="rows"></tbody>
       </table>
@@ -301,7 +290,7 @@
     <div class="scroll">
       <table>
         <thead>
-          <tr><th class="num">売値</th><th class="num">送料</th><th class="num">手数料</th><th class="num">手取り</th><th class="num">手取り（円）</th><th class="num">実効率</th><th class="num">関税後（円）</th></tr>
+          <tr><th class="num">売値</th><th class="num">米国の送料</th><th class="num">米国 手取り</th><th class="num">米国以外 手取り</th></tr>
         </thead>
         <tbody id="quick"></tbody>
       </table>
@@ -316,7 +305,7 @@
         <li><span class="flag">腕時計は $1,000 に段差があります。</span>超えた部分は4%に落ちるので、高額帯を「18%」で計算すると手数料を大きく見すぎます（$2,300なら実際は約11〜13%）。</li>
         <li>落札手数料は<b>売値＋買い手が払う送料</b>にかかります（eBay公式・2026年10月28日確認）。米国向けで関税を足して高くした送料にもかかるので、送料＝基本の送料＋関税（手数料込み）として、その全額に手数料をかけています。注文ごとの固定費は $0.40（$10以下の注文は $0.30）。</li>
         <li>広告（Promoted Listings）は<b>使ったときだけ</b>。売れた分にだけかかります。</li>
-        <li>ここに<b>入っていないもの</b>：仕入れ値、こちらが払う実際の発送費、消費税の還付。手取りには買い手からもらう送料（基本の送料と関税分）が入っています。「関税を払ったあとの手取り」は関税分を引いた額＝基本の送料は残ったままです。</li>
+        <li>ここに<b>入っていないもの</b>：仕入れ値、こちらが払う実際の発送費、消費税の還付。「全部払ったあとの手取り」は、売値＋送料から手数料と関税を払った残り。<b>基本の送料（$30）は残ったまま</b>で、実際の発送費はまだ引いていません。</li>
         <li><b>関税は米国に売ったときの目安</b>（2026年9月25日時点）。売値にかけています（米国の課税価格は国際送料を含まない）。<span class="flag">米国の関税は半年で何度も変わっています。出す前にSpeedPAKの推定関税で確認してください。</span></li>
         <li>日本製・スイス製は、どの商品でも<b>合計12.5%</b>（基本税率が12.5%未満なら12.5%まで上乗せ）。</li>
         <li>中国製は昔からの上乗せ関税（腕時計・カメラ7.5%／レンズ25%／バッグ25%）に<b>さらに12.5%</b>。<span class="flag">カメラ・レンズの中国製の率は確定できていない目安</span>です。</li>
@@ -328,7 +317,7 @@
 
   <footer>
     料率の出典：eBay公式「ストアの販売手数料」。腕時計は2026年9月21日に確認（$1,000まで12.5%／$1,000〜$5,000は4%／$5,000超は3%）。カメラ・バッグは2026年8月31日に確認。プランが変わると料率も変わります。<br>
-    <span id="ver">版 2026-10-28a（送料＝基本$30＋米国は関税。送料にも手数料）</span>
+    <span id="ver">版 2026-10-28b（全部払ったあとの手取りを米国と米国以外で並べる）</span>
   </footer>
 </div>
 
@@ -394,7 +383,6 @@
     return {
       price: Math.max(0, Number($('price').value) || 0),
       shipBase: Math.max(0, Number($('ship').value) || 0),
-      dest: $('dest').value === 'other' ? 'other' : 'us',
       cat: CATS[$('cat').value] ? $('cat').value : 'watch',
       fx: Math.max(1, Number($('fx').value) || 150),
       intl: Number($('intl').value) || 0,
@@ -407,9 +395,8 @@
     };
   }
 
-  function compute(s, price) {
+  function compute(s, price, us) {
     // 関税（米国）: 売値にかける。真贋保証の帯は買い手が払うので0。米国以外は0
-    var us = s.dest === 'us';
     var ag = CATS[s.cat].ag;
     var agFree = us && !!ag && price >= ag;
     var duty = us && !agFree ? price * s.duty : 0;
@@ -428,62 +415,58 @@
       us: us, agFree: agFree, duty: duty, dutyFee: dutyFee, after: net - duty - dutyFee };
   }
 
-  function row(label, rateText, amount, fx, cls) {
-    return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + label + '</td><td class="num tier">' +
-      rateText + '</td><td class="num">' + usd(amount) + '</td><td class="num">' + jpy(amount * fx) + '</td></tr>';
+  function row(label, a, b, cls) {
+    return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + label + '</td><td class="num">' +
+      a + '</td><td class="num">' + b + '</td></tr>';
+  }
+
+  // 落札手数料は段階ごとの合計で出す（米国と米国以外で段の数が違うことがあるため）
+  function fvfRate(r) {
+    return r.fvf.parts.map(function (p) { return pct(p.rate); }).join('→');
   }
 
   function render() {
     var s = settings();
-    var r = compute(s, s.price);
+    var u = compute(s, s.price, true);
+    var o = compute(s, s.price, false);
     var html = '';
 
-    html += row('手数料がかかる金額<br><span class="tier">売値 ' + usd(s.price) + ' ＋ 送料 ' + usd(r.ship) + '</span>', '—', r.base, s.fx);
-    r.fvf.parts.forEach(function (p, i) {
-      var range = r.fvf.parts.length === 1 ? '売値＋送料の全額'
-        : (i === 0 ? '最初の ' + usd(p.span) : usd(p.from) + ' を超えた ' + usd(p.span) + ' 分');
-      html += row('落札手数料<br><span class="tier">' + range + '</span>', pct(p.rate), p.fee, s.fx);
-    });
-    html += row('注文ごとの固定費', '—', r.fixed, s.fx);
-    html += row('国際出品手数料', pct(s.intl), r.intl, s.fx);
-    if (s.payoneer) html += row('Payoneer（受取）', '2%', r.pay, s.fx);
-    if (s.ads) html += row('広告（Promoted Listings）', pct(s.adrate), r.ad, s.fx);
-    html += row('合計', r.base > 0 ? pct(r.fees / r.base) : '—', r.fees, s.fx, 'total');
-    html += row('関税（米国）<br><span class="tier">' + (!r.us ? '米国以外なので無し' : r.agFree ? '真贋保証の帯なので買い手が払う' : '売値 ' + usd(s.price) + ' に対して') + '</span>',
-      r.us && !r.agFree ? pct(s.duty) : '—', r.duty, s.fx);
-    if (s.dutyFee) html += row('関税の手数料<br><span class="tier">関税の約2%＋935円＋215円（関税0なら無し）</span>', '—', r.dutyFee, s.fx);
+    html += row('売値', usd(s.price), usd(s.price));
+    html += row('送料<br><span class="tier">米国は基本の送料＋関税（手数料込み）</span>', usd(u.ship) + (u.agFree ? '<br><span class="tier">真贋保証の帯</span>' : ''), usd(o.ship));
+    html += row('手数料がかかる金額<br><span class="tier">売値＋送料</span>', usd(u.base), usd(o.base));
+    html += row('落札手数料<br><span class="tier">' + fvfRate(u) + '</span>', '−' + usd(u.fvf.total), '−' + usd(o.fvf.total));
+    html += row('注文ごとの固定費', '−' + usd(u.fixed), '−' + usd(o.fixed));
+    html += row('国際出品手数料<br><span class="tier">' + pct(s.intl) + '</span>', '−' + usd(u.intl), '−' + usd(o.intl));
+    if (s.payoneer) html += row('Payoneer（受取）<br><span class="tier">2%</span>', '−' + usd(u.pay), '−' + usd(o.pay));
+    if (s.ads) html += row('広告（Promoted Listings）<br><span class="tier">' + pct(s.adrate) + '</span>', '−' + usd(u.ad), '−' + usd(o.ad));
+    html += row('関税<br><span class="tier">' + (u.agFree ? '真贋保証の帯なので買い手が払う' : '売値の ' + pct(s.duty)) + '</span>', '−' + usd(u.duty), '—');
+    if (s.dutyFee) html += row('関税の手数料<br><span class="tier">関税の約2%＋935円＋215円（関税0なら無し）</span>', '−' + usd(u.dutyFee), '—');
+    html += row('全部払ったあとの手取り', usd(u.after) + '<br><span class="tier">' + jpy(u.after * s.fx) + '</span>',
+      usd(o.after) + '<br><span class="tier">' + jpy(o.after * s.fx) + '</span>', 'total');
     $('rows').innerHTML = html;
 
-    $('afterUsd').textContent = usd(r.after);
-    $('afterJpy').textContent = jpy(r.after * s.fx);
-    $('dutyUsd').textContent = usd(r.duty + r.dutyFee);
-    $('dutyJpy').textContent = jpy((r.duty + r.dutyFee) * s.fx);
-    $('shipCalc').textContent = '買い手に請求する送料 ' + usd(r.ship) + '（基本 ' + usd(s.shipBase) +
-      (r.duty > 0 ? ' ＋ 関税 ' + usd(r.duty + r.dutyFee) + (r.dutyFee > 0 ? '（手数料込み）' : '') : '') + '）。この送料にも手数料がかかります';
-    $('dutyNote').textContent = !r.us ? '米国以外なので関税なし'
-      : r.agFree
-      ? '真贋保証（' + usd(CATS[s.cat].ag) + '以上）＝買い手が払う'
-      : '関税率 ' + pct(s.duty) + (s.dutyFee && r.duty > 0 ? '・手数料込み' : '');
+    $('usUsd').textContent = usd(u.after);
+    $('usJpy').textContent = jpy(u.after * s.fx);
+    $('usNote').textContent = u.agFree ? '送料 ' + usd(u.ship) + '・真贋保証の帯なので関税は買い手'
+      : '送料 ' + usd(u.ship) + '（関税 ' + usd(u.duty + u.dutyFee) + ' 込み）';
+    $('otUsd').textContent = usd(o.after);
+    $('otJpy').textContent = jpy(o.after * s.fx);
+    $('otNote').textContent = '送料 ' + usd(o.ship) + '・関税なし';
+    $('shipCalc').textContent = '米国に請求する送料 ' + usd(u.ship) + '（この送料にも手数料がかかります）';
     $('dutyHint').textContent = dutyHintText(s.origin, s.cat);
-
-    $('netUsd').textContent = usd(r.net);
-    $('netJpy').textContent = jpy(r.net * s.fx);
-    $('feeUsd').textContent = usd(r.fees);
-    $('feeJpy').textContent = jpy(r.fees * s.fx);
-    $('feePct').textContent = r.base > 0 ? '売値＋送料 ' + usd(r.base) + ' に対して ' + pct(r.fees / r.base) : '売値を入れてください';
 
     var points = [300, 500, 1000, 1500, 2000, 3000, 5000];
     if (points.indexOf(s.price) === -1 && s.price > 0) { points.push(s.price); points.sort(function (a, b) { return a - b; }); }
     var q = '';
     points.forEach(function (p) {
-      var c = compute(s, p);
+      var cu = compute(s, p, true), co = compute(s, p, false);
       var mark = p === s.price ? ' style="background:var(--surface-2)"' : '';
-      q += '<tr' + mark + '><td class="num">' + usd(p) + '</td><td class="num">' + usd(c.ship) + '</td><td class="num">' + usd(c.fees) + '</td><td class="num">' +
-        usd(c.net) + '</td><td class="num">' + jpy(c.net * s.fx) + '</td><td class="num">' + pct(c.fees / c.base) +
-        '</td><td class="num">' + jpy(c.after * s.fx) + (c.agFree ? '<span class="tier">（真贋）</span>' : '') + '</td></tr>';
+      q += '<tr' + mark + '><td class="num">' + usd(p) + '</td><td class="num">' + usd(cu.ship) + (cu.agFree ? '<br><span class="tier">真贋</span>' : '') +
+        '</td><td class="num">' + usd(cu.after) + '<br><span class="tier">' + jpy(cu.after * s.fx) + '</span>' +
+        '</td><td class="num">' + usd(co.after) + '<br><span class="tier">' + jpy(co.after * s.fx) + '</span></td></tr>';
     });
     $('quick').innerHTML = q;
-    $('quickNote').textContent = CATS[s.cat].name + '・' + (s.dest === 'us' ? '米国（送料＝基本 ' + usd(s.shipBase) + '＋関税）' : '米国以外（送料 ' + usd(s.shipBase) + '）') + '・1ドル ' + s.fx + '円' +
+    $('quickNote').textContent = CATS[s.cat].name + '・基本の送料 ' + usd(s.shipBase) + '・1ドル ' + s.fx + '円' +
       (s.ads ? '・広告 ' + pct(s.adrate) : '・広告なし') + (s.payoneer ? '・Payoneer 2%込み' : '・Payoneerなし') + 'で計算。網掛けは今の売値。';
 
     try { localStorage.setItem('ebayFee', JSON.stringify(s)); } catch (e) {}
@@ -495,7 +478,6 @@
       if (saved.price != null) $('price').value = saved.price;
       // 古い版の saved.ship（買い手に請求する送料）は読まない。基本の送料は $30 から
       if (saved.shipBase != null) $('ship').value = saved.shipBase;
-      if (saved.dest) $('dest').value = saved.dest;
       if (saved.cat && CATS[saved.cat]) $('cat').value = saved.cat;
       if (saved.fx) $('fx').value = saved.fx;
       if (saved.intl) $('intl').value = String(saved.intl);
@@ -517,7 +499,7 @@
   $('origin').addEventListener('change', resetDuty);
   $('cat').addEventListener('change', resetDuty);
 
-  ['price', 'ship', 'dest', 'cat', 'fx', 'intl', 'payoneer', 'ads', 'adrate', 'duty', 'dutyFee'].forEach(function (id) {
+  ['price', 'ship', 'cat', 'fx', 'intl', 'payoneer', 'ads', 'adrate', 'duty', 'dutyFee'].forEach(function (id) {
     $(id).addEventListener('input', render);
     $(id).addEventListener('change', render);
   });
